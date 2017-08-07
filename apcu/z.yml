@@ -1,0 +1,22 @@
+# @version ">=2.0"
+
+tasks:
+    env.apcu:
+        help: |
+            Clears the remote APCU cache
+
+            A file __apcu_clear_cache.php containing the code to clear the cache file is transferred
+            to the remote machine's "web" dir and then wget by prepending the env's "url" before it
+        args:
+            _file:  cat(envs[target_env].root, envs[target_env].web, "/__apcu_clear_cache.php")
+            target_env:    ?
+        do:
+            - echo '<?php apcu_clear_cache("user"); apcu_clear_cache(); ' | ssh $(envs[target_env].ssh) "cat > $(_file)"
+            - wget -qO - $(path(envs[target_env].url, "__apcu_clear_cache.php")) > /dev/null
+            - @(sh ssh(target_env)) rm $(_file)
+            - @(if VERBOSE) echo "Cache cleared at $(target_env) $(envs[target_env].url)"
+
+    # hook into the deploy task to flush the apcu cache after deploy.
+    deploy:
+        post:
+            - @env.apcu
