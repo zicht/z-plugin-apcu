@@ -12,7 +12,7 @@ tasks:
             target_env:    ?
         do:
             - echo '<?php apcu_clear_cache();' | ssh $(envs[target_env].ssh) "cat > $(_file)"
-            - curl "$(path(envs[target_env].url, "__apcu_clear_cache.php"))" $(envs[target_env].host ? sprintf("-H 'Host:%s%s'", " ", envs[target_env].host)) > /dev/null
+            - curl -L "$(path(envs[target_env].url, "__apcu_clear_cache.php"))" $(envs[target_env].host ? sprintf("-H 'Host:%s%s'", " ", envs[target_env].host)) > /dev/null
             - @(sh ssh(target_env)) rm $(_file)
             - @(if VERBOSE) echo "Cache cleared at $(target_env) $(envs[target_env].url)"
 
